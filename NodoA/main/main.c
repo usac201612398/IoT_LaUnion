@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "comunicaciones.h"
+#include "wifi.h"
 
 static const char *TAG = "Main";
 static QueueHandle_t cola_sensores;
@@ -58,7 +59,13 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Arrancando sistema");
 
-    ESP_ERROR_CHECK(sensores_init());
+    ESP_ERROR_CHECK(
+        wifi_init()
+    );
+    
+    ESP_ERROR_CHECK(
+        sensores_init()
+    );
 
     cola_sensores = xQueueCreate(
         5,
