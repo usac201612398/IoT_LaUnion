@@ -1,20 +1,47 @@
 #include "comunicaciones.h"
 #include "esp_log.h"
-//#include "mqtt_client.h"
-//#include "cJSON.h"
+#include "mqtt_client.h"
+#include "cJSON.h"
 
 static const char *TAG = "MQTT";
-//static esp_mqtt_client_handle_t client = NULL;
-//static bool mqtt_conectado = false;
+static esp_mqtt_client_handle_t client = NULL;
+static bool mqtt_conectado = false;
 
+
+static void mqtt_event_handler(
+    void *handler_args,
+    esp_event_base_t base,
+    int32_t event_id,
+    void *event_data
+)
+{
+    switch (event_id)
+    {
+    case MQTT_EVENT_CONNECTED:
+        mqtt_conectado = true;
+        ESP_LOGI(
+            TAG,
+            "MQTT conectado"
+        );
+        break;
+    case MQTT_EVENT_DISCONNECTED:
+        mqtt_conectado = false;
+        ESP_LOGW(
+            TAG,
+            "MQTT desconectado"
+        );
+    default:
+        break;
+    }
+}
 
 esp_err_t mqtt_init(void)
 {
-    /*
+    
     esp_mqtt_client_config_t mqtt_cfg =
     {
         .broker.address.uri=
-            "mqtt://broker.hivemq.com"
+            "mqtt://test.mosquitto.org"
     };
 
     client = 
@@ -30,7 +57,7 @@ esp_err_t mqtt_init(void)
     );
     
     esp_mqtt_client_start(client);
-    */
+    
     ESP_LOGI(
         TAG,
         "Cliente MQTT conectado"
@@ -38,49 +65,20 @@ esp_err_t mqtt_init(void)
 
     return ESP_OK;
 }
-/*
-static void mqtt_event_handler(
-    void *handler_args,
-    esp_event_base_t base,
-    int32_t event_id,
-    void *event_data
-)
-{
-    switch (event_id)
-    {
-    case MQTT_EVENT_CONNECTED:
-        mqtt_conectado = true;
-        ESP_LOGI(
-            TAG,
-            "MQTT conectado"
-        )
-        break;
-    case MQTT_EVENT_DISCONNECTED:
-        mqtt_conectado = false;
-        ESP_LOGW(
-            TAG,
-            "MQTT desconectado"
-        )
-    default:
-        break;
-    }
-}
-*/
 
 esp_err_t mqtt_publicar_sensores(sensores_data_t *datos)
 {
-    /*
+
     if(!mqtt_conectado){
         ESP_LOGW(
             TAG,
             "Broker no conectado"
-        )
+        );
 
         return ESP_FAIL;
     }
-    */
-    /*
-    cJSON *root = cJSON_CreateObject;
+    
+    cJSON *root = cJSON_CreateObject();
     cJSON_AddNumberToObject(
         root,
         "temperatura",
@@ -103,8 +101,7 @@ esp_err_t mqtt_publicar_sensores(sensores_data_t *datos)
     );
 
     char *json = cJSON_PrintUnformatted(root);
-    */
-    /*
+    
     esp_mqtt_client_publish(
         client,
         "finca/nodoA/sensores",
@@ -113,15 +110,15 @@ esp_err_t mqtt_publicar_sensores(sensores_data_t *datos)
         1,
         0
     );
-    */
 
     ESP_LOGI(
         TAG,
-        "Publicando:"
+        "Publicando: %s",
+        json
     );
 
-    //free(json);
-    //cJSON_Delete(root);
+    free(json);
+    cJSON_Delete(root);
     
     return ESP_OK;
 }

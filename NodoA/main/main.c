@@ -12,6 +12,7 @@ static QueueHandle_t cola_sensores;
 static void mqtt_task(void *pvParameters)
 {
     sensores_data_t datos={0};
+    vTaskDelay(pdMS_TO_TICKS(5000));
     mqtt_init();
 
     while(1)
