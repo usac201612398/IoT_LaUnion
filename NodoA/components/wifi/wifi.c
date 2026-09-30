@@ -8,8 +8,8 @@
 
 static const char *TAG = "WIFI";
 
-#define WIFI_SSID "FAM.PORTILLO"
-#define WIFI_PASSWORD "ZTT45WHK"
+#define WIFI_SSID "SEEDS-SR"
+#define WIFI_PASSWORD "S3m1ll@523"
 
 static void wifi_event_handler(
     void *arg,

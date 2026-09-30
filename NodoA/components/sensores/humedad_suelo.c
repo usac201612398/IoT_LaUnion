@@ -5,7 +5,6 @@
 
 
 /*
- * Para ESP32 clásico:
  *
  * GPIO34 corresponde a ADC1_CHANNEL_6.
  */

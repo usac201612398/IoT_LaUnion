@@ -76,3 +76,11 @@ Desktop.ini
 *.workspace # General workspace files, can be from various tools
 *.suo       # Visual Studio Solution User Options
 *.sln.docstates # Visual Studio
+
+# Credenciales de AWS IoT
+**/certs/*.key
+**/certs/*.pem
+**/certs/*.crt
+ 
+# Archivos descargados por AWS
+**/aws-iot-device-sdk-python-v2/

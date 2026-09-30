@@ -5,28 +5,31 @@
 #include "freertos/queue.h"
 #include "comunicaciones.h"
 #include "wifi.h"
+#include "actuadores.h"
 
 static const char *TAG = "Main";
 static QueueHandle_t cola_sensores;
+static QueueHandle_t cola_actuadores;
 
 static void mqtt_task(void *pvParameters)
 {
-    sensores_data_t datos={0};
-    vTaskDelay(pdMS_TO_TICKS(5000));
-    mqtt_init();
+    sensores_data_t datos = {0};
 
-    while(1)
+    vTaskDelay(pdMS_TO_TICKS(10000));
+
+    mqtt_init(cola_actuadores);
+
+    while (1)
     {
-
-        if(
-            xQueueReceive(cola_sensores,
-                        &datos,
-                        portMAX_DELAY
-                    )==pdTRUE
+        if (
+            xQueueReceive(
+                cola_sensores,
+                &datos,
+                portMAX_DELAY
+            ) == pdTRUE
         )
         {
             mqtt_publicar_sensores(&datos);
-
         }
     }
 }
@@ -78,6 +81,12 @@ void app_main(void)
     ESP_LOGE(TAG, "Error creando cola");
     }
 
+    cola_actuadores = xQueueCreate(
+        5,
+        sizeof(actuador_comando_t)
+    );
+    actuador_init();
+
     xTaskCreate(
         sensor_task,
         "sensor_task",
@@ -87,6 +96,15 @@ void app_main(void)
         NULL
     );
     ESP_LOGI(TAG, "Sistema iniciado");
+
+    xTaskCreate(
+        actuador_task,
+        "actuador_task",
+        4096,
+        cola_actuadores,
+        5,
+        NULL
+    );
 
     xTaskCreate(
         mqtt_task,
