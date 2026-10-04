@@ -155,6 +155,7 @@ static void mqtt_event_handler(
                 comando.id = id->valueint;
                 comando.estado = cJSON_IsTrue(estado);
                 comando.tipo = ACCION_INDEPENDIENTE;
+                comando.duracion = 0;
 
                 xQueueSend(
                     s_cola_actuadores,
@@ -427,6 +428,16 @@ esp_err_t publicar_comando_nodo(
     bool estado,
     uint32_t duracion)
 {
+
+    if (!mqtt_conectado)
+    {
+        ESP_LOGW(
+            TAG,
+            "Broker no conectado");
+
+        return ESP_FAIL;
+    }
+
     char topico[64];
 
     snprintf(
@@ -438,6 +449,7 @@ esp_err_t publicar_comando_nodo(
     cJSON *root = cJSON_CreateObject();
 
     actuador_id_t id_riego = obtener_actuador_riego(nodo);
+
     cJSON_AddNumberToObject(root,
                             "id",
                             id_riego);
@@ -477,6 +489,73 @@ esp_err_t publicar_comando_nodo(
     return ESP_OK;
 }
 
+esp_err_t publicar_historial_riego(
+    const char *nodo,
+    const char *actuador,
+    bool estado,
+    uint32_t duracion,
+    int tipo
+)
+{
+    if (!mqtt_conectado)
+    {
+        ESP_LOGW(
+            TAG,
+            "Broker no conectado");
+
+        return ESP_FAIL;
+    }
+
+    const char *texto_tipo = obtener_tipo_comando(tipo);
+    const char *texto_estado = obtener_status_actuador(estado ? ACTUADOR_ON : ACTUADOR_OFF);
+    
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(
+        root,
+        "origen",
+        nodo);
+
+    cJSON_AddStringToObject(
+        root,
+        "actuador",
+        actuador);
+
+    cJSON_AddStringToObject(
+        root,
+        "estado",
+        texto_estado);
+
+    cJSON_AddNumberToObject(root,
+                            "duracion",
+                            duracion);
+    
+    cJSON_AddStringToObject(
+        root,
+        "tipo",
+        texto_tipo);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    esp_mqtt_client_publish(
+        client,
+        "iot_launion/historial/riegos",
+        json,
+        0,
+        1,
+        0);
+
+    ESP_LOGI(
+        TAG,
+        "Historial enviado: %s",
+        json);
+
+    cJSON_free(json);
+    cJSON_Delete(root);
+
+    return ESP_OK;
+}
+
 actuador_id_t obtener_actuador_riego(const char *nodo)
 {
     if (strcmp(nodo, "NodoA") == 0)
@@ -489,4 +568,32 @@ actuador_id_t obtener_actuador_riego(const char *nodo)
         return ACTUADOR_RELAY_3;
 
     return ACTUADOR_RELAY_1;
+
+}
+
+const char *obtener_status_actuador (status_actuador_t status)
+{
+    if (status == ACTUADOR_ON)
+    {
+        return "Encendido";
+    }
+    
+    return "Apagado";
+
+}
+
+const char *obtener_tipo_comando (tipo_comando_t tipo)
+{
+
+    switch (tipo)
+    {
+    case ACCION_INDEPENDIENTE:
+        return "ACCION_MANUAL";
+    case COMANDO_MANUAL:
+        return "RIEGO_MANUAL";
+    case COMANDO_AUTOMATICO:
+        return "RIEGO_AUTOMATICO";
+    default:
+        return "NO_DEFINIDO";
+    }
 }

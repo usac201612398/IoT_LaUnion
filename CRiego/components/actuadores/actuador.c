@@ -6,6 +6,13 @@
 
 static const char *TAG = "ACTUADORES";
 
+extern esp_err_t publicar_historial_riego(
+    const char *nodo,
+    const char *actuador,
+    bool estado,
+    uint32_t duracion,
+    int tipo);
+
 void actuador_init(void)
 {
     gpio_config_t pin_config =
@@ -57,6 +64,13 @@ void tarea_apagado(void *pvParameters)
         ESP_LOGI(
             TAG,
             "Bomba apagada por temporizador");
+
+        publicar_historial_riego(
+            "CRiego",
+            "ACTUADOR_BOMBA_CENTRAL",
+            false,
+            datos->duracion,
+            datos->tipo);
         break;
 
     case ACTUADOR_RELAY_1:
@@ -99,9 +113,6 @@ void actuador_task(void *pvParameters)
         if (xQueueReceive(cola, &comando, portMAX_DELAY))
         {
 
-            apagado_temporizado_t *datos =
-                malloc(sizeof(apagado_temporizado_t));
-
             switch (comando.id)
             {
             case ACTUADOR_BOMBA_CENTRAL:
@@ -114,8 +125,15 @@ void actuador_task(void *pvParameters)
 
                     ESP_LOGI(
                         TAG,
-                        "Accion Manual Bomba: %u tipo: %u",
+                        "Accion Manual Bomba: %s tipo: %u",
                         comando.estado ? "ON" : "OFF", comando.tipo);
+
+                    publicar_historial_riego(
+                        "CRiego",
+                        "ACTUADOR_BOMBA_CENTRAL",
+                        comando.estado,
+                        comando.duracion,
+                        comando.tipo);
                 }
                 else if (comando.tipo == COMANDO_MANUAL)
                 {
@@ -132,14 +150,26 @@ void actuador_task(void *pvParameters)
                             : "MANUAL",
                         (unsigned long)comando.duracion);
 
+                    publicar_historial_riego(
+                        "CRiego",
+                        "ACTUADOR_BOMBA_CENTRAL",
+                        comando.estado,
+                        comando.duracion,
+                        comando.tipo);
 
                     if (comando.estado && comando.duracion > 0)
                     {
+                        apagado_temporizado_t *datos =
+                            malloc(sizeof(apagado_temporizado_t));
+
                         datos->id =
                             comando.id;
 
                         datos->duracion =
                             comando.duracion;
+
+                        datos->tipo =
+                            comando.tipo;
 
                         xTaskCreate(
                             tarea_apagado,
@@ -156,6 +186,13 @@ void actuador_task(void *pvParameters)
                         BOMBA_GPIO,
                         comando.estado ? 1 : 0);
 
+                    publicar_historial_riego(
+                        "CRiego",
+                        "ACTUADOR_BOMBA_CENTRAL",
+                        comando.estado,
+                        comando.duracion,
+                        comando.tipo);
+
                     ESP_LOGI(
                         TAG,
                         "Bomba: %s | modo=%s | duracion=%u | Tipo: %u",
@@ -165,14 +202,19 @@ void actuador_task(void *pvParameters)
                             : "MANUAL",
                         (unsigned long)comando.duracion, comando.tipo);
 
-
                     if (comando.estado && comando.duracion > 0)
                     {
+                        apagado_temporizado_t *datos =
+                            malloc(sizeof(apagado_temporizado_t));
+
                         datos->id =
                             comando.id;
 
                         datos->duracion =
                             comando.duracion;
+
+                        datos->tipo =
+                            comando.tipo;
 
                         xTaskCreate(
                             tarea_apagado,
