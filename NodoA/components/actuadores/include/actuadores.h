@@ -20,7 +20,9 @@ typedef enum
 typedef enum
 {
     COMANDO_MANUAL = 0,
-    COMANDO_AUTOMATICO = 1
+    COMANDO_AUTOMATICO = 1,
+    ACCION_INDEPENDIENTE = 2
+
 
 } tipo_comando_t;
 

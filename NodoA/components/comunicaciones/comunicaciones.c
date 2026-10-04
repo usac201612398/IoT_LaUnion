@@ -156,6 +156,22 @@ static void mqtt_event_handler(
                 ESP_LOGI(TAG, "Comando enviando a cola tipo: %u",tipo->valueint);
                 cJSON_Delete(root);
             }
+            else if (tipo && tipo->valueint == ACCION_INDEPENDIENTE)
+            {
+                riego_automatico_activo = true;
+                comando.id = id->valueint;
+                comando.estado = cJSON_IsTrue(estado);
+                comando.duracion = duracion->valueint;
+                comando.tipo = ACCION_INDEPENDIENTE;
+
+                xQueueSend(
+                    s_cola_actuadores,
+                    &comando,
+                    0);
+
+                ESP_LOGI(TAG, "Comando enviando a cola tipo: %u",tipo->valueint);
+                cJSON_Delete(root);
+            }
             else
             {
                 riego_automatico_activo = false;

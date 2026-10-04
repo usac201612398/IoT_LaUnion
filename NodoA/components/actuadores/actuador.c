@@ -76,7 +76,18 @@ void actuador_task(void *pvParameters)
             switch (comando.id)
             {
             case ACTUADOR_RELAY_1:
-                if (comando.tipo == COMANDO_MANUAL)
+                if (comando.tipo == ACCION_INDEPENDIENTE)
+                {
+                    gpio_set_level(
+                        RELAY_1_GPIO,
+                        comando.estado);
+
+                    ESP_LOGI(
+                        TAG,
+                        "Accion Manual Válvula: %u tipo: %u",
+                        comando.estado ? "ON" : "OFF", comando.tipo);
+                }
+                else
                 {
                     gpio_set_level(
                         RELAY_1_GPIO,
@@ -105,48 +116,7 @@ void actuador_task(void *pvParameters)
                             NULL);
                     }
                 }
-                else
-                {
-                    if (comando.estado == false)
-                    {
-                        gpio_set_level(
-                            RELAY_1_GPIO,
-                            comando.estado);
-
-                        ESP_LOGI(
-                            TAG,
-                            "Relay 1: apagado");
-                    }
-                    else
-                    {
-                        gpio_set_level(
-                            RELAY_1_GPIO,
-                            comando.estado);
-
-                        ESP_LOGI(
-                            TAG,
-                            "Relay 1: %s encendido por %u segundos",
-                            comando.estado ? "ON" : "OFF", comando.duracion);
-
-                        if (comando.estado == true && comando.duracion > 0)
-                        {
-                            
-                            datos->id =
-                                comando.id;
-
-                            datos->duracion =
-                                comando.duracion;
-
-                            xTaskCreate(
-                                tarea_apagado,
-                                "apagado_bomba",
-                                4096,
-                                datos,
-                                5,
-                                NULL);
-                        }
-                    }
-                }
+                
                 break;
 
             default:
