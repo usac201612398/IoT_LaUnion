@@ -3,7 +3,12 @@
 #define RELAY_1_GPIO GPIO_NUM_18
 
 static const char *TAG = "ACTUADORES";
-
+extern esp_err_t publicar_historial_riego(
+    const char *nodo,
+    const char *actuador,
+    bool estado,
+    uint32_t duracion,
+    int tipo);
 void actuador_init(void)
 {
     gpio_config_t pin_config =
@@ -45,6 +50,13 @@ void tarea_apagado(void *pvParameters)
             TAG,
             "Relay 1 apagado por temporizador");
 
+        publicar_historial_riego(
+            "NodoA",
+            "ACTUADOR_RELAY_1",
+            false,
+            datos->duracion,
+            datos->tipo);
+
         break;
 
     case ACTUADOR_RELAY_2:
@@ -70,8 +82,6 @@ void actuador_task(void *pvParameters)
     {
         if (xQueueReceive(cola, &comando, portMAX_DELAY))
         {
-            apagado_temporizado_t *datos =
-                malloc(sizeof(apagado_temporizado_t));
 
             switch (comando.id)
             {
@@ -86,6 +96,13 @@ void actuador_task(void *pvParameters)
                         TAG,
                         "Accion Manual Válvula: %u tipo: %u",
                         comando.estado ? "ON" : "OFF", comando.tipo);
+
+                    publicar_historial_riego(
+                        "NodoA",
+                        "ACTUADOR_RELAY_1",
+                        comando.estado,
+                        comando.duracion,
+                        comando.tipo);
                 }
                 else
                 {
@@ -98,14 +115,26 @@ void actuador_task(void *pvParameters)
                         "Relay 1 Manual: %u tipo: %u",
                         comando.estado ? "ON" : "OFF", comando.tipo);
 
+                    publicar_historial_riego(
+                        "NodoA",
+                        "ACTUADOR_RELAY_1",
+                        comando.estado,
+                        comando.duracion,
+                        comando.tipo);
+
                     if (comando.estado &&
                         comando.duracion > 0)
                     {
+                        apagado_temporizado_t *datos =
+                            malloc(sizeof(apagado_temporizado_t));
                         datos->id =
                             comando.id;
 
                         datos->duracion =
                             comando.duracion;
+                            
+                        datos->tipo =
+                            comando.tipo;
 
                         xTaskCreate(
                             tarea_apagado,
@@ -116,7 +145,7 @@ void actuador_task(void *pvParameters)
                             NULL);
                     }
                 }
-                
+
                 break;
 
             default:

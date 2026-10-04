@@ -26,6 +26,12 @@ typedef enum
 
 } tipo_comando_t;
 
+typedef enum
+{
+    ACTUADOR_OFF = false,
+    ACTUADOR_ON = true
+
+} status_actuador_t;
 typedef struct actuador
 {
     actuador_id_t id;
@@ -39,7 +45,11 @@ typedef struct
 {
 actuador_id_t id;
 uint32_t duracion;
+tipo_comando_t tipo;
 } apagado_temporizado_t;
+
+const char *obtener_tipo_comando (tipo_comando_t tipo);
+const char *obtener_status_actuador (status_actuador_t status);
 
 void actuador_init(void);
 void actuador_task(void *pvParameters);

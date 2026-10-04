@@ -459,10 +459,10 @@ esp_err_t publicar_comando_nodo(
         "estado",
         estado);
 
-    cJSON_AddStringToObject(
+    cJSON_AddNumberToObject(
         root,
         "tipo",
-        "automatico");
+        1);
 
     cJSON_AddNumberToObject(root,
                             "duracion",

@@ -9,4 +9,12 @@ esp_err_t mqtt_publicar_sensores(
    sensores_data_t *datos 
 );
 
+esp_err_t publicar_historial_riego(
+   const char *nodo,
+   const char *actuador,
+   bool estado,
+   uint32_t duracion,
+   int tipo
+);
+
 #endif
