@@ -20,7 +20,8 @@ typedef enum
 typedef enum
 {
     COMANDO_MANUAL = 0,
-    COMANDO_AUTOMATICO = 1
+    COMANDO_AUTOMATICO = 1,
+    ACCION_INDEPENDIENTE = 2
 
 } tipo_comando_t;
 
@@ -39,6 +40,7 @@ actuador_id_t id;
 uint32_t duracion;
 } apagado_temporizado_t;
 
+actuador_id_t obtener_actuador_riego(const char *nodo);
 void actuador_init(void);
 void actuador_task(void *pvParameters);
 

@@ -11,6 +11,7 @@
 static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t client = NULL;
 static bool mqtt_conectado = false;
+static bool riego_automatico_activo = false;
 
 extern const uint8_t root_ca_start[] asm("_binary_root_ca_pem_start");
 
@@ -25,6 +26,11 @@ extern const uint8_t device_key_start[] asm("_binary_device_key_pem_start");
 extern const uint8_t device_key_end[] asm("_binary_device_key_pem_end");
 
 static QueueHandle_t s_cola_actuadores = NULL;
+
+esp_err_t publicar_comando_nodo(
+    const char *nodo,
+    bool estado,
+    uint32_t duracion);
 
 static void mqtt_event_handler(
     void *handler_args,
@@ -134,69 +140,102 @@ static void mqtt_event_handler(
                 topic,
                 "iot_launion/comandos/CRiego") == 0)
         {
-
             ESP_LOGI(TAG, "Comando de AWS");
 
             cJSON *root = cJSON_Parse(event->data);
             cJSON *id = cJSON_GetObjectItem(root, "id");
             cJSON *estado = cJSON_GetObjectItem(root, "estado");
             cJSON *duracion = cJSON_GetObjectItem(root, "duracion");
+            cJSON *tipo = cJSON_GetObjectItem(root, "tipo");
 
             actuador_comando_t comando;
 
-            comando.id = id->valueint;
-            comando.estado = cJSON_IsTrue(estado);
-            comando.tipo = COMANDO_MANUAL;
-            if (duracion)
+            if (tipo && tipo->valueint == ACCION_INDEPENDIENTE)
             {
-                comando.duracion =
-                    duracion->valueint;
+                comando.id = id->valueint;
+                comando.estado = cJSON_IsTrue(estado);
+                comando.tipo = ACCION_INDEPENDIENTE;
+
+                xQueueSend(
+                    s_cola_actuadores,
+                    &comando,
+                    0);
+
+                ESP_LOGI(TAG, "Comando de Accion Manual CRiego enviando a cola");
+                cJSON_Delete(root);
             }
-            else
+            else if (tipo && tipo->valueint == COMANDO_MANUAL)
             {
-                comando.duracion = 0;
+                comando.id = id->valueint;
+                comando.estado = cJSON_IsTrue(estado);
+                comando.tipo = COMANDO_MANUAL;
+                if (duracion)
+                {
+                    comando.duracion =
+                        duracion->valueint;
+                }
+                else
+                {
+                    comando.duracion = 0;
+                }
+
+                xQueueSend(
+                    s_cola_actuadores,
+                    &comando,
+                    0);
+
+                ESP_LOGI(TAG, "Comando de CRiego enviando a cola");
+                cJSON_Delete(root);
             }
-
-            xQueueSend(
-                s_cola_actuadores,
-                &comando,
-                0);
-
-            ESP_LOGI(TAG, "Comando enviando a cola");
-            cJSON_Delete(root);
         }
         else
         {
+            // Monitorea los nodos subscritos para automatizar riego
 
             cJSON *root = cJSON_Parse(event->data);
 
             if (root)
             {
                 cJSON *por_humedad = cJSON_GetObjectItem(root, "por_humedad");
+                cJSON *nodo = cJSON_GetObjectItem(root, "nodo");
+                
+                char *nombre_nodo = NULL;
 
+                if (nodo && cJSON_IsString(nodo))
+                {
+                    nombre_nodo = nodo->valuestring;
+                }
                 if (por_humedad)
                 {
+
                     float hs = por_humedad->valuedouble;
 
-                    ESP_LOGI(TAG, "Humedad suelo %.1f", hs);
+                    ESP_LOGI(TAG, "Nodo %s - Humedad suelo %.1f", nombre_nodo, hs);
 
-                    if (hs < 30)
+                    if (hs < 30 && !riego_automatico_activo)
                     {
+                        riego_automatico_activo = true;
                         actuador_comando_t comando;
 
                         comando.id = ACTUADOR_BOMBA_CENTRAL;
                         comando.estado = true;
                         comando.tipo = COMANDO_AUTOMATICO;
-
+                        comando.duracion = 30;
                         xQueueSend(
                             s_cola_actuadores,
                             &comando,
                             0);
+                        // COMUNICACION DE CRiego a NodoA
+                        publicar_comando_nodo(
+                            nombre_nodo,
+                            true,
+                            30);
 
                         ESP_LOGI(TAG, "Riego automatico activado");
                     }
-                    else
+                    else if (hs >= 40 && riego_automatico_activo)
                     {
+                        riego_automatico_activo = false;
                         actuador_comando_t comando;
 
                         comando.id = ACTUADOR_BOMBA_CENTRAL;
@@ -254,7 +293,7 @@ esp_err_t mqtt_init(QueueSetHandle_t cola_actuadores)
 
             .credentials =
                 {
-                    .client_id = "basicPubSub",
+                    .client_id = "CRiego",
 
                     .authentication =
                         {
@@ -381,4 +420,73 @@ esp_err_t mqtt_publicar_sensores(sensores_data_t *datos)
     cJSON_Delete(root);
 
     return ESP_OK;
+}
+
+esp_err_t publicar_comando_nodo(
+    const char *nodo,
+    bool estado,
+    uint32_t duracion)
+{
+    char topico[64];
+
+    snprintf(
+        topico,
+        sizeof(topico),
+        "iot_launion/comandos/%s",
+        nodo);
+
+    cJSON *root = cJSON_CreateObject();
+
+    actuador_id_t id_riego = obtener_actuador_riego(nodo);
+    cJSON_AddNumberToObject(root,
+                            "id",
+                            id_riego);
+
+    cJSON_AddBoolToObject(
+        root,
+        "estado",
+        estado);
+
+    cJSON_AddStringToObject(
+        root,
+        "tipo",
+        "automatico");
+
+    cJSON_AddNumberToObject(root,
+                            "duracion",
+                            duracion);
+
+    char *json = cJSON_PrintUnformatted(root);
+
+    esp_mqtt_client_publish(
+        client,
+        topico,
+        json,
+        0,
+        1,
+        0);
+
+    ESP_LOGI(
+        TAG,
+        "Publicando: %s",
+        json);
+
+    free(json);
+    cJSON_Delete(root);
+
+    return ESP_OK;
+}
+
+actuador_id_t obtener_actuador_riego(const char *nodo)
+{
+    if (strcmp(nodo, "NodoA") == 0)
+        return ACTUADOR_RELAY_1;
+
+    if (strcmp(nodo, "NodoB") == 0)
+        return ACTUADOR_RELAY_2;
+
+    if (strcmp(nodo, "NodoC") == 0)
+        return ACTUADOR_RELAY_3;
+
+    return ACTUADOR_RELAY_1;
 }
