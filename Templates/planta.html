@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo de plantas | IoT La Unión</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --verde: #166534;
+            --rojo: #dc2626;
+            --azul: #2563eb;
+            --fondo: #f4f7f4;
+            --texto: #17201a;
+            --gris: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: var(--texto);
+            background: var(--fondo);
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 5%;
+            color: #fff;
+            background: var(--verde);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        .volver {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 28px 20px 45px;
+        }
+
+        .barra {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .barra h2 {
+            margin: 0 0 5px;
+        }
+
+        .subtitulo {
+            margin: 0;
+            color: var(--gris);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        select {
+            min-width: 170px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+        }
+
+        .estado-error {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px;
+            color: #991b1b;
+            background: #fee2e2;
+            border-radius: 9px;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            padding: 20px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(15, 35, 20, .08);
+        }
+
+        .card p {
+            margin: 0 0 10px;
+            color: var(--gris);
+        }
+
+        .valor {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .actualizacion {
+            margin-top: 9px;
+            color: var(--gris);
+            font-size: 13px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-card {
+            min-height: 390px;
+        }
+
+        .chart-card h3 {
+            margin: 0 0 15px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 320px;
+        }
+
+        @media (max-width: 520px) {
+            header {
+                align-items: flex-start;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                min-height: 340px;
+            }
+
+            .chart-wrap {
+                height: 270px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Monitoreo de plantas</h1>
+        <a class="volver" href="index.html">← Menú principal</a>
+    </header>
+
+    <main>
+        <section class="barra">
+            <div>
+                <h2 id="tituloNodo">Telemetría de NodoA</h2>
+                <p class="subtitulo">Datos obtenidos mediante ESP32 y recursos cloud computing.</p>
+            </div>
+
+            <div>
+                <label for="selectorNodo">Nodo</label>
+                <select id="selectorNodo">
+                    <option value="NodoA">NodoA</option>
+                    <option value="NodoB">NodoB</option>
+                    <!-- Agregue futuros nodos así: <option value="NodoB">NodoB</option> -->
+                </select>
+            </div>
+        </section>
+
+        <div id="error" class="estado-error"></div>
+
+        <section class="resumen">
+            <article class="card">
+                <p>Temperatura</p>
+                <div id="temp" class="valor">--</div>
+            </article>
+
+            <article class="card">
+                <p>Humedad ambiente</p>
+                <div id="humedad" class="valor">--</div>
+            </article>
+
+            <article class="card">
+                <p>Humedad del suelo</p>
+                <div id="suelo" class="valor">--</div>
+            </article>
+
+            <article class="card">
+                <p>Última lectura</p>
+                <div id="ultimaLectura" class="valor" style="font-size:20px">--</div>
+                <div class="actualizacion">Actualización automática cada 10 segundos</div>
+            </article>
+        </section>
+
+        <section class="charts-grid">
+            <article class="card chart-card">
+                <h3>Temperatura</h3>
+                <div class="chart-wrap"><canvas id="graficaTemperatura"></canvas></div>
+            </article>
+
+            <article class="card chart-card">
+                <h3>Humedad ambiente</h3>
+                <div class="chart-wrap"><canvas id="graficaHumedad"></canvas></div>
+            </article>
+
+            <article class="card chart-card">
+                <h3>Humedad del suelo</h3>
+                <div class="chart-wrap"><canvas id="graficaSuelo"></canvas></div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = "https://ci33pf4cxk.execute-api.us-east-1.amazonaws.com";
+
+        let nodoSeleccionado = "NodoA";
+        let graficaTemperatura = null;
+        let graficaHumedad = null;
+        let graficaSuelo = null;
+
+        function formatearFecha(timestamp) {
+            return new Date(timestamp).toLocaleString("es-GT", {
+                dateStyle: "short",
+                timeStyle: "medium"
+            });
+        }
+
+        function crearGrafica(elementoId, etiqueta, valores, datos, color, minimo, maximo) {
+            return new Chart(document.getElementById(elementoId), {
+                type: "line",
+                data: {
+                    labels: datos.map((_, indice) => indice + 1),
+                    datasets: [{
+                        label: etiqueta,
+                        data: valores,
+                        borderColor: color,
+                        backgroundColor: color + "22",
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        tension: 0.25,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: "index"
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title(contexto) {
+                                    const indice = contexto[0].dataIndex;
+                                    return formatearFecha(datos[indice].timestamp);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            suggestedMin: minimo,
+                            suggestedMax: maximo
+                        },
+                        x: {
+                            ticks: { display: false },
+                            grid: { display: false },
+                            title: { display: true, text: "Pase el cursor sobre un punto para ver la fecha y hora" }
+                        }
+                    }
+                }
+            });
+        }
+
+        function destruirGraficas() {
+            if (graficaTemperatura) graficaTemperatura.destroy();
+            if (graficaHumedad) graficaHumedad.destroy();
+            if (graficaSuelo) graficaSuelo.destroy();
+        }
+
+        async function cargarDatos() {
+            const errorElemento = document.getElementById("error");
+            errorElemento.style.display = "none";
+
+            try {
+                const apiUrl = `${API_BASE}/telemetria/${encodeURIComponent(nodoSeleccionado)}`;
+                const respuesta = await fetch(apiUrl, { cache: "no-store" });
+
+                if (!respuesta.ok) {
+                    throw new Error(`La API respondió con estado ${respuesta.status}`);
+                }
+
+                const datos = await respuesta.json();
+
+                if (!Array.isArray(datos) || datos.length === 0) {
+                    throw new Error(`No hay telemetría disponible para ${nodoSeleccionado}`);
+                }
+
+                const ultimo = datos[datos.length - 1];
+
+                document.getElementById("tituloNodo").textContent = `Telemetría de ${nodoSeleccionado}`;
+                document.getElementById("temp").textContent = `${Number(ultimo.temperatura).toFixed(2)} °C`;
+                document.getElementById("humedad").textContent = `${Number(ultimo.humedad_ambiente).toFixed(2)} %`;
+                document.getElementById("suelo").textContent = `${Number(ultimo.por_humedad).toFixed(2)} %`;
+                document.getElementById("ultimaLectura").textContent = formatearFecha(ultimo.timestamp);
+
+                const temperaturas = datos.map(registro => Number(registro.temperatura));
+                const humedadesAmbiente = datos.map(registro => Number(registro.humedad_ambiente));
+                const humedadesSuelo = datos.map(registro => Number(registro.por_humedad));
+
+                destruirGraficas();
+
+                graficaTemperatura = crearGrafica(
+                    "graficaTemperatura", "Temperatura (°C)", temperaturas, datos, "#dc2626", 0, 50
+                );
+
+                graficaHumedad = crearGrafica(
+                    "graficaHumedad", "Humedad ambiente (%)", humedadesAmbiente, datos, "#2563eb", 0, 100
+                );
+
+                graficaSuelo = crearGrafica(
+                    "graficaSuelo", "Humedad del suelo (%)", humedadesSuelo, datos, "#16a34a", 0, 100
+                );
+
+            } catch (error) {
+                console.error("Error al cargar la telemetría:", error);
+                errorElemento.textContent = `No fue posible cargar la telemetría: ${error.message}`;
+                errorElemento.style.display = "block";
+            }
+        }
+
+        document.getElementById("selectorNodo").addEventListener("change", evento => {
+            nodoSeleccionado = evento.target.value;
+            cargarDatos();
+        });
+
+        cargarDatos();
+        setInterval(cargarDatos, 10000);
+    </script>
+</body>
+
+</html>

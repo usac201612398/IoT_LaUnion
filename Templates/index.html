@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT La Unión</title>
+    <style>
+        :root {
+            --verde: #166534;
+            --verde-claro: #22c55e;
+            --azul: #2563eb;
+            --fondo: #f3f6f4;
+            --texto: #17201a;
+            --gris: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: var(--texto);
+            background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+        }
+
+        header {
+            padding: 28px 8%;
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid #dbe5dd;
+        }
+
+        header h1 {
+            margin: 0 0 7px;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--gris);
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 55px 24px;
+        }
+
+        .intro {
+            margin-bottom: 30px;
+        }
+
+        .opciones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .opcion {
+            display: flex;
+            flex-direction: column;
+            min-height: 260px;
+            padding: 28px;
+            color: inherit;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid #dce7de;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(15, 35, 20, 0.08);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .opcion:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 38px rgba(15, 35, 20, 0.14);
+        }
+
+        .icono {
+            font-size: 46px;
+            margin-bottom: 15px;
+        }
+
+        .opcion h2 {
+            margin: 0 0 10px;
+        }
+
+        .opcion p {
+            color: var(--gris);
+            line-height: 1.55;
+        }
+
+        .boton {
+            display: inline-block;
+            margin-top: auto;
+            padding: 12px 16px;
+            color: #fff;
+            text-align: center;
+            background: var(--verde);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .pendiente {
+            opacity: .62;
+            cursor: not-allowed;
+        }
+
+        .pendiente .boton {
+            background: #64748b;
+        }
+
+        footer {
+            padding: 22px;
+            color: var(--gris);
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Plataforma IoT La Unión</h1>
+        <p>Monitoreo de plantas y gestión del sistema de riego</p>
+    </header>
+
+    <main>
+        <section class="intro">
+            <h2>Seleccione un módulo</h2>
+            <p>Ingrese al monitoreo de campo o control del cuarto de riego.</p>
+        </section>
+
+        <section class="opciones">
+            <a class="opcion" href="planta.html">
+
+                <div class="icono">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h2>Plantas en campo</h2>
+                <p>Consulte temperatura, humedad ambiente y humedad del suelo por nodo, con valores actuales y gráficas
+                    históricas.</p>
+                <span class="boton">Abrir monitoreo</span>
+            </a>
+
+            <a class="opcion" href="cuartoriego.html">
+
+                <div class="icono">
+                    <i class="fa-solid fa-gears"></i>
+                </div>
+
+                <h2>Cuarto de riego</h2>
+
+                <p>
+                    Controle la bomba principal y las válvulas del sistema
+                    de riego y consulte datos de variables.
+                </p>
+
+                <span class="boton">
+                    Abrir panel de control
+                </span>
+
+            </a>
+        </section>
+    </main>
+
+    <footer>IoT La Unión</footer>
+</body>
+
+</html>

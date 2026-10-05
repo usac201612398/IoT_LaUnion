@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuarto de Riego | IoT La Unión</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --verde: #166534;
+            --verde-claro: #16a34a;
+            --rojo: #dc2626;
+            --azul: #2563eb;
+            --amarillo: #d97706;
+            --fondo: #f4f7f4;
+            --texto: #17201a;
+            --gris: #64748b;
+            --borde: #dbe5dc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: var(--texto);
+            background: var(--fondo);
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 5%;
+            color: #fff;
+            background: var(--verde);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        .volver {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 28px 20px 45px;
+        }
+
+        .barra {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .barra h2,
+        .seccion-titulo h2 {
+            margin: 0 0 5px;
+        }
+
+        .subtitulo {
+            margin: 0;
+            color: var(--gris);
+        }
+
+        .estado-error {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px;
+            color: #991b1b;
+            background: #fee2e2;
+            border-radius: 9px;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .card {
+            padding: 20px;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(15, 35, 20, .08);
+        }
+
+        .card p {
+            margin: 0 0 10px;
+            color: var(--gris);
+        }
+
+        .valor {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .actualizacion {
+            margin-top: 9px;
+            color: var(--gris);
+            font-size: 13px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .chart-card {
+            min-height: 390px;
+        }
+
+        .chart-card h3 {
+            margin: 0 0 15px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 320px;
+        }
+
+        .seccion-titulo {
+            margin: 30px 0 16px;
+        }
+
+        .riego-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 11px 12px;
+            color: var(--texto);
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 15px;
+        }
+
+        .acciones-riego {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            transition: transform .15s ease, opacity .15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .6;
+            transform: none;
+        }
+
+        .btn-iniciar,
+        .btn-on {
+            background: var(--verde-claro);
+        }
+
+        .btn-detener,
+        .btn-off {
+            background: var(--rojo);
+        }
+
+        .btn-h {
+            background: var(--azul);
+        }
+
+        .btn-secundario {
+            background: var(--gris);
+        }
+
+        .estado-riego {
+            display: grid;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .dato-estado {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 11px 0;
+            border-bottom: 1px solid #eef2ef;
+        }
+
+        .dato-estado:last-child {
+            border-bottom: 0;
+        }
+
+        .dato-estado strong {
+            text-align: right;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .badge-off {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .badge-on {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .aviso {
+            margin-top: 16px;
+            padding: 12px;
+            color: #854d0e;
+            background: #fef9c3;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .tabla-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        
+        th {
+            text-align: left;
+            padding: 0 12px 14px;
+            color: var(--gris);
+        }
+
+        td {
+            padding: 15px 12px;
+            border-top: 1px solid #ecefec;
+        }
+
+        .estado {
+            font-weight: bold;
+        }
+
+        .estado-on {
+            color: var(--verde-claro);
+        }
+
+        .estado-off {
+            color: var(--rojo);
+        }
+
+        .acciones-tabla {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        #respuesta {
+            margin-top: 18px;
+            padding: 15px;
+            color: #334155;
+            background: #f8fafc;
+            border-radius: 10px;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        #respuesta.exito {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        #respuesta.error {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        @media (max-width: 850px) {
+            .riego-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+            header {
+                align-items: flex-start;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                min-height: 340px;
+            }
+
+            .chart-wrap {
+                height: 270px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Cuarto de Riego</h1>
+        <a class="volver" href="index.html">← Menú principal</a>
+    </header>
+
+    <main>
+        <section class="barra">
+            <div>
+                <h2>Telemetría de CRiego</h2>
+                <p class="subtitulo">Supervisión del tanque, caudal y consumo de agua.</p>
+            </div>
+        </section>
+
+        <div id="error" class="estado-error"></div>
+
+        <section class="resumen">
+            <article class="card">
+                <p>Nivel de agua</p>
+                <div id="nivel" class="valor">--</div>
+            </article>
+            <article class="card">
+                <p>Flujo</p>
+                <div id="flujo" class="valor">--</div>
+            </article>
+            <article class="card">
+                <p>Litros acumulados</p>
+                <div id="litros" class="valor">--</div>
+            </article>
+            <article class="card">
+                <p>Última lectura</p>
+                <div id="ultimaLectura" class="valor" style="font-size:20px">--</div>
+                <div class="actualizacion">Actualización automática cada 10 segundos</div>
+            </article>
+        </section>
+
+        <section class="charts-grid">
+            <article class="card chart-card">
+                <h3>Nivel del tanque</h3>
+                <div class="chart-wrap"><canvas id="graficaNivel"></canvas></div>
+            </article>
+            <article class="card chart-card">
+                <h3>Flujo</h3>
+                <div class="chart-wrap"><canvas id="graficaFlujo"></canvas></div>
+            </article>
+            <article class="card chart-card">
+                <h3>Agua acumulada</h3>
+                <div class="chart-wrap"><canvas id="graficaLitros"></canvas></div>
+            </article>
+        </section>
+
+        <section class="seccion-titulo">
+            <h2>Riego manual por sector</h2>
+            <p class="subtitulo">Seleccione un nodo y el tiempo de riego. El sistema solicitará la apertura de la
+                válvula correspondiente y el arranque de la bomba.</p>
+        </section>
+
+        <section class="riego-grid">
+            <article class="card">
+                <h3>Programar riego</h3>
+                <div class="form-grid">
+                    <div>
+                        <label for="sectorRiego">Sector</label>
+                        <select id="sectorRiego">
+                            <option value="NodoA">Nodo A</option>
+                            <option value="NodoB">Nodo B</option>
+                            <option value="NodoC">Nodo C</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="duracionRiego">Duración (minutos)</label>
+                        <input id="duracionRiego" type="number" min="1" max="180" step="1" value="10">
+                    </div>
+                </div>
+                <div class="acciones-riego">
+                    <button id="btnIniciarRiego" class="btn-iniciar" type="button" onclick="iniciarRiego()">Iniciar
+                        riego</button>
+                    <button id="btnDetenerRiego" class="btn-detener" type="button" onclick="detenerRiego()">Detener
+                        riego</button>
+                </div>
+                <div class="aviso">Se ha iniciado el riego manual.</div>
+
+            </article>
+
+            <article class="card">
+                <h3>Riego en ejecución</h3>
+                <div class="estado-riego">
+                    <div class="dato-estado">
+                        <span>Estado</span>
+                        <strong><span id="estadoRiego" class="badge badge-off">DETENIDO</span></strong>
+                    </div>
+                    <div class="dato-estado">
+                        <span>Sector</span>
+                        <strong id="sectorActivo">Ninguno</strong>
+                    </div>
+                    <div class="dato-estado">
+                        <span>Tiempo restante</span>
+                        <strong id="tiempoRestante">00:00</strong>
+                    </div>
+                    <div class="dato-estado">
+                        <span>Modo</span>
+                        <strong id="modoActivo">Manual</strong>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="seccion-titulo">
+            <h2>Control individual de mantenimiento</h2>
+            <p class="subtitulo">Interfaz para acciones manuales sobre los actuadores del sistema de riego.</p>
+        </section>
+
+        <section class="card">
+            <div class="tabla-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dispositivo</th>
+                            <th>Estado local</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Válvula Nodo A</td>
+                            <td><span id="estadoA" class="estado estado-off">OFF</span></td>
+                            <td class="acciones-tabla">
+                                <button class="btn-on"
+                                    onclick="enviarComandoIndividual('ValvulaNodoA','ON','estadoA')">ON</button>
+                                <button class="btn-off"
+                                    onclick="enviarComandoIndividual('ValvulaNodoA','OFF','estadoA')">OFF</button>
+                                <button class="btn-h" onclick="abrirHistorial('ACTUADOR_RELAY_1')">Historial</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Válvula Nodo B</td>
+                            <td><span id="estadoB" class="estado estado-off">OFF</span></td>
+                            <td class="acciones-tabla">
+                                <button class="btn-on"
+                                    onclick="enviarComandoIndividual('ValvulaNodoB','ON','estadoB')">ON</button>
+                                <button class="btn-off"
+                                    onclick="enviarComandoIndividual('ValvulaNodoB','OFF','estadoB')">OFF</button>
+                                <button class="btn-h" onclick="abrirHistorial('ValvulaNodoB')">Historial</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Válvula Nodo C</td>
+                            <td><span id="estadoC" class="estado estado-off">OFF</span></td>
+                            <td class="acciones-tabla">
+                                <button class="btn-on"
+                                    onclick="enviarComandoIndividual('ValvulaNodoC','ON','estadoC')">ON</button>
+                                <button class="btn-off"
+                                    onclick="enviarComandoIndividual('ValvulaNodoC','OFF','estadoC')">OFF</button>
+                                <button class="btn-h" onclick="abrirHistorial('ValvulaNodoC')">Historial</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Bomba principal</td>
+                            <td><span id="estadoBomba" class="estado estado-off">OFF</span></td>
+                            <td class="acciones-tabla">
+                                <button class="btn-on"
+                                    onclick="enviarComandoIndividual('BombaPrincipal','ON','estadoBomba')">ON</button>
+                                <button class="btn-off"
+                                    onclick="enviarComandoIndividual('BombaPrincipal','OFF','estadoBomba')">OFF</button>
+                                <button class="btn-h"
+                                    onclick="abrirHistorial('ACTUADOR_BOMBA_CENTRAL')">Historial</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="respuesta">Sistema listo.</div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = "https://ci33pf4cxk.execute-api.us-east-1.amazonaws.com";
+        const API_COMANDOS = `${API_BASE}/actuadores/comandos`;
+
+        let graficaNivel = null;
+        let graficaFlujo = null;
+        let graficaLitros = null;
+        let intervaloTemporizador = null;
+        let segundosRestantes = 0;
+        let sectorEnEjecucion = null;
+
+        function mostrarRespuesta(mensaje, tipo = "") {
+            const respuesta = document.getElementById("respuesta");
+            respuesta.textContent = mensaje;
+            respuesta.className = tipo;
+        }
+
+        async function publicarComando(payload) {
+            const response = await fetch(API_COMANDOS, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const texto = await response.text();
+            if (!response.ok) {
+                throw new Error(`La API respondió ${response.status}: ${texto}`);
+            }
+            return texto;
+        }
+
+        async function iniciarRiego() {
+            const sector = document.getElementById("sectorRiego").value;
+            const minutos = Number(document.getElementById("duracionRiego").value);
+
+            if (!Number.isFinite(minutos) || minutos < 1 || minutos > 180) {
+                mostrarRespuesta("Ingrese una duración válida entre 1 y 180 minutos.", "error");
+                return;
+            }
+
+            const duracionSegundos = Math.round(minutos * 60);
+            const boton = document.getElementById("btnIniciarRiego");
+            boton.disabled = true;
+            mostrarRespuesta(`Enviando solicitud de riego para ${sector}...`);
+
+            try {
+                const texto = await publicarComando({
+                    tipo: "riego_manual",
+                    sector,
+                    duracion: duracionSegundos
+                });
+
+                iniciarTemporizadorLocal(sector, duracionSegundos);
+                actualizarEstadosPorRiego(sector, true);
+                mostrarRespuesta(`Riego iniciado en ${sector} durante ${minutos} minuto(s).\nRespuesta: ${texto}`, "exito");
+            } catch (error) {
+                mostrarRespuesta(`No fue posible iniciar el riego: ${error.message}`, "error");
+            } finally {
+                boton.disabled = false;
+            }
+        }
+
+        async function detenerRiego() {
+            const sector = sectorEnEjecucion || document.getElementById("sectorRiego").value;
+            const boton = document.getElementById("btnDetenerRiego");
+            boton.disabled = true;
+            mostrarRespuesta(`Enviando detención de riego para ${sector}...`);
+
+            try {
+                const texto = await publicarComando({
+                    tipo: "riego_manual",
+                    sector,
+                    duracion: 0,
+                    accion: "OFF"
+                });
+
+                finalizarTemporizadorLocal();
+                actualizarEstadosPorRiego(sector, false);
+                mostrarRespuesta(`Riego detenido en ${sector}.\nRespuesta: ${texto}`, "exito");
+            } catch (error) {
+                mostrarRespuesta(`No fue posible detener el riego: ${error.message}`, "error");
+            } finally {
+                boton.disabled = false;
+            }
+        }
+
+        function iniciarTemporizadorLocal(sector, duracionSegundos) {
+            if (intervaloTemporizador) clearInterval(intervaloTemporizador);
+            sectorEnEjecucion = sector;
+            segundosRestantes = duracionSegundos;
+            document.getElementById("sectorActivo").textContent = sector;
+            document.getElementById("estadoRiego").textContent = "EN CURSO";
+            document.getElementById("estadoRiego").className = "badge badge-on";
+            document.getElementById("modoActivo").textContent = "Manual";
+            actualizarTiempoRestante();
+
+            intervaloTemporizador = setInterval(() => {
+                segundosRestantes -= 1;
+                actualizarTiempoRestante();
+                if (segundosRestantes <= 0) {
+                    actualizarEstadosPorRiego(sectorEnEjecucion, false);
+                    finalizarTemporizadorLocal();
+                }
+            }, 1000);
+        }
+
+        function finalizarTemporizadorLocal() {
+            if (intervaloTemporizador) clearInterval(intervaloTemporizador);
+            intervaloTemporizador = null;
+            segundosRestantes = 0;
+            sectorEnEjecucion = null;
+            document.getElementById("sectorActivo").textContent = "Ninguno";
+            document.getElementById("estadoRiego").textContent = "DETENIDO";
+            document.getElementById("estadoRiego").className = "badge badge-off";
+            document.getElementById("tiempoRestante").textContent = "00:00";
+        }
+
+        function actualizarTiempoRestante() {
+            const minutos = Math.floor(Math.max(segundosRestantes, 0) / 60);
+            const segundos = Math.max(segundosRestantes, 0) % 60;
+            document.getElementById("tiempoRestante").textContent =
+                `${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+        }
+
+        function actualizarEstado(elementoId, encendido) {
+            const estado = document.getElementById(elementoId);
+            estado.textContent = encendido ? "ON" : "OFF";
+            estado.className = encendido ? "estado estado-on" : "estado estado-off";
+        }
+
+        function actualizarEstadosPorRiego(sector, encendido) {
+            const mapa = { NodoA: "estadoA", NodoB: "estadoB", NodoC: "estadoC" };
+            if (mapa[sector]) actualizarEstado(mapa[sector], encendido);
+            actualizarEstado("estadoBomba", encendido);
+        }
+
+        async function enviarComandoIndividual(dispositivo, accion, estadoId) {
+            mostrarRespuesta(`Enviando ${accion} a ${dispositivo}...`);
+            try {
+                const texto = await publicarComando({ dispositivo, accion });
+                actualizarEstado(estadoId, accion === "ON");
+                mostrarRespuesta(`Operación individual ejecutada: ${dispositivo} ${accion}.\nRespuesta: ${texto}`, "exito");
+            } catch (error) {
+                mostrarRespuesta(`Error al controlar ${dispositivo}: ${error.message}`, "error");
+            }
+        }
+
+        function abrirHistorial(actuador) {
+            window.location.href =
+                `historial.html?actuador=${encodeURIComponent(actuador)}`;
+        }
+
+        function formatearFecha(timestamp) {
+            return new Date(timestamp).toLocaleString("es-GT", {
+                dateStyle: "short",
+                timeStyle: "medium"
+            });
+        }
+
+        function crearGrafica(elementoId, etiqueta, valores, datos, color, minimo, maximo) {
+            return new Chart(document.getElementById(elementoId), {
+                type: "line",
+                data: {
+                    labels: datos.map((_, indice) => indice + 1),
+                    datasets: [{
+                        label: etiqueta,
+                        data: valores,
+                        borderColor: color,
+                        backgroundColor: color + "22",
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 6,
+                        tension: 0.25,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: "index" },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title(contexto) {
+                                    const indice = contexto[0].dataIndex;
+                                    return formatearFecha(datos[indice].timestamp);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { suggestedMin: minimo, suggestedMax: maximo },
+                        x: {
+                            ticks: { display: false },
+                            grid: { display: false },
+                            title: { display: true, text: "Pase el cursor sobre un punto para ver la fecha y hora" }
+                        }
+                    }
+                }
+            });
+        }
+
+        function destruirGraficas() {
+            if (graficaFlujo) graficaFlujo.destroy();
+            if (graficaNivel) graficaNivel.destroy();
+            if (graficaLitros) graficaLitros.destroy();
+        }
+
+        async function cargarDatos() {
+            const errorElemento = document.getElementById("error");
+            errorElemento.style.display = "none";
+
+            try {
+                const respuesta = await fetch(`${API_BASE}/telemetria/CRiego`, { cache: "no-store" });
+                if (!respuesta.ok) throw new Error(`La API respondió con estado ${respuesta.status}`);
+
+                const datos = await respuesta.json();
+                if (!Array.isArray(datos) || datos.length === 0) {
+                    throw new Error("No hay telemetría disponible para CRiego");
+                }
+
+                const ultimo = datos[datos.length - 1];
+                document.getElementById("nivel").textContent = `${Number(ultimo.por_llenado).toFixed(2)} %`;
+                document.getElementById("flujo").textContent = `${Number(ultimo.flujo).toFixed(2)} L/min`;
+                document.getElementById("litros").textContent = `${Number(ultimo.litros).toFixed(2)} L`;
+                document.getElementById("ultimaLectura").textContent = formatearFecha(ultimo.timestamp);
+
+                const nivel = datos.map(registro => Number(registro.por_llenado));
+                const flujo = datos.map(registro => Number(registro.flujo));
+                const litros = datos.map(registro => Number(registro.litros));
+
+                destruirGraficas();
+                graficaNivel = crearGrafica("graficaNivel", "Nivel (%)", nivel, datos, "#dc2626", 0, 100);
+                graficaFlujo = crearGrafica("graficaFlujo", "Flujo (L/min)", flujo, datos, "#2563eb", 0, 100);
+                graficaLitros = crearGrafica("graficaLitros", "Cantidad de agua (L)", litros, datos, "#16a34a", 0, 100);
+            } catch (error) {
+                console.error("Error al cargar la telemetría:", error);
+                errorElemento.textContent = `No fue posible cargar la telemetría: ${error.message}`;
+                errorElemento.style.display = "block";
+            }
+        }
+
+        cargarDatos();
+        setInterval(cargarDatos, 10000);
+    </script>
+</body>
+
+</html>
