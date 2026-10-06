@@ -12,6 +12,7 @@ static const char *TAG = "WIFI";
 #define WIFI_PASSWORD "S3m1ll@523"
 //#define WIFI_SSID "FAM.PORTILLO"
 //#define WIFI_PASSWORD "ZTT45WHK"
+
 static void wifi_event_handler(
     void *arg,
     esp_event_base_t event_base,
@@ -29,6 +30,12 @@ static void wifi_event_handler(
         event_id == WIFI_EVENT_STA_CONNECTED)
     {
         ESP_LOGI(TAG, "WiFi conectado");
+    }
+
+    if (event_base == WIFI_EVENT &&
+        event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+        esp_wifi_connect();
     }
 
     if (event_base == IP_EVENT &&

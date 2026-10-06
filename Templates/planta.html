@@ -306,7 +306,11 @@
 
             try {
                 const apiUrl = `${API_BASE}/telemetria/${encodeURIComponent(nodoSeleccionado)}`;
-                const respuesta = await fetch(apiUrl, { cache: "no-store" });
+                const respuesta = await fetch(apiUrl, {
+                    cache: "no-store", headers: {
+                        "x-token": "iot_la_union_2026"
+                    }
+                });
 
                 if (!respuesta.ok) {
                     throw new Error(`La API respondió con estado ${respuesta.status}`);

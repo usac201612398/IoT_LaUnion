@@ -2,13 +2,14 @@
 
 #define RELAY_1_GPIO GPIO_NUM_18
 
-static const char *TAG = "ACTUADORES";
+static const char *TAG = "Actuadores";
 extern esp_err_t publicar_historial_riego(
     const char *nodo,
     const char *actuador,
     bool estado,
     uint32_t duracion,
     int tipo);
+
 void actuador_init(void)
 {
     gpio_config_t pin_config =
@@ -31,6 +32,8 @@ void tarea_apagado(void *pvParameters)
     apagado_temporizado_t *datos =
         (apagado_temporizado_t *)pvParameters;
 
+    //tiempo apagado proceso.
+    
     vTaskDelay(
         pdMS_TO_TICKS(
             datos->duracion * 1000));

@@ -1,204 +1,208 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Historial de Actuador | IoT La Unión</title>
+    <title>Historial de Actuador | IoT La Unión</title>
 
-<style>
+    <style>
+        :root {
+            --verde: #166534;
+            --verde-claro: #16a34a;
+            --rojo: #dc2626;
+            --azul: #2563eb;
+            --fondo: #f4f7f4;
+            --texto: #17201a;
+            --gris: #64748b;
+        }
 
-:root {
-    --verde: #166534;
-    --verde-claro: #16a34a;
-    --rojo: #dc2626;
-    --azul: #2563eb;
-    --fondo: #f4f7f4;
-    --texto: #17201a;
-    --gris: #64748b;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-*{
-    box-sizing:border-box;
-}
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--fondo);
+            color: var(--texto);
+        }
 
-body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:var(--fondo);
-    color:var(--texto);
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: var(--verde);
+            color: white;
+        }
 
-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px 5%;
-    background:var(--verde);
-    color:white;
-}
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
 
-h1{
-    margin:0;
-    font-size:24px;
-}
+        .volver {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
 
-.volver{
-    color:white;
-    text-decoration:none;
-    font-weight:bold;
-}
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px;
+        }
 
-main{
-    max-width:1200px;
-    margin:auto;
-    padding:25px;
-}
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(15, 35, 20, .08);
+        }
 
-.card{
-    background:white;
-    border-radius:14px;
-    padding:20px;
-    box-shadow:0 4px 16px rgba(15,35,20,.08);
-}
+        .subtitulo {
+            color: var(--gris);
+            margin-top: 5px;
+        }
 
-.subtitulo{
-    color:var(--gris);
-    margin-top:5px;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th{
-    background:#64748b;
-    color:white;
-    padding:12px;
-    text-align:left;
-}
+        th {
+            background: #64748b;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
 
 
-td{
-    padding:12px;
-    border-bottom:1px solid #e5e7eb;
-}
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
 
-tr:hover{
-    background:#f8fafc;
-}
+        tr:hover {
+            background: #f8fafc;
+        }
 
-.estado-on{
-    color:var(--verde-claro);
-    font-weight:bold;
-}
+        .estado-on {
+            color: var(--verde-claro);
+            font-weight: bold;
+        }
 
-.estado-off{
-    color:var(--rojo);
-    font-weight:bold;
-}
+        .estado-off {
+            color: var(--rojo);
+            font-weight: bold;
+        }
 
-.loading{
-    text-align:center;
-    color:var(--gris);
-    padding:20px;
-}
+        .loading {
+            text-align: center;
+            color: var(--gris);
+            padding: 20px;
+        }
 
-.error{
-    color:red;
-    font-weight:bold;
-}
-
-</style>
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-    <h1 id="titulo">
-        Historial
-    </h1>
+    <header>
+        <h1 id="titulo">
+            Historial
+        </h1>
 
-    <a href="cuartoriego.html" class="volver">
-        ← Regresar
-    </a>
-</header>
+        <a href="cuartoriego.html" class="volver">
+            ← Regresar
+        </a>
+    </header>
 
-<main>
+    <main>
 
-    <div class="card">
+        <div class="card">
 
-        <p class="subtitulo">
-            Eventos registrados del actuador seleccionado.
-        </p>
+            <p class="subtitulo">
+                Eventos registrados del actuador seleccionado.
+            </p>
 
-        <table>
+            <table>
 
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Nodo</th>
-                    <th>Estado</th>
-                    <th>Tipo</th>
-                    <th>Duración</th>
-                </tr>
-            </thead>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Nodo</th>
+                        <th>Estado</th>
+                        <th>Tipo</th>
+                        <th>Duración</th>
+                    </tr>
+                </thead>
 
-            <tbody id="tablaHistorial">
+                <tbody id="tablaHistorial">
 
-                <tr>
-                    <td colspan="5" class="loading">
-                        Cargando historial...
-                    </td>
-                </tr>
+                    <tr>
+                        <td colspan="5" class="loading">
+                            Cargando historial...
+                        </td>
+                    </tr>
 
-            </tbody>
+                </tbody>
 
-        </table>
+            </table>
 
-    </div>
+        </div>
 
-</main>
+    </main>
 
-<script>
+    <script>
 
-const API_BASE =
-"https://ci33pf4cxk.execute-api.us-east-1.amazonaws.com";
+        const API_BASE =
+            "https://ci33pf4cxk.execute-api.us-east-1.amazonaws.com";
 
-const params =
-    new URLSearchParams(window.location.search);
+        const params =
+            new URLSearchParams(window.location.search);
 
-const actuador =
-    params.get("actuador");
+        const actuador =
+            params.get("actuador");
 
-document.getElementById("titulo").innerText =
-    `Historial de ${actuador}`;
+        document.getElementById("titulo").innerText =
+            `Historial de ${actuador}`;
 
-const API_URL =
-`${API_BASE}/historial/riegos/${actuador}`;
+        const API_URL =
+            `${API_BASE}/historial/riegos/${actuador}`;
 
-async function cargarHistorial(){
+        async function cargarHistorial() {
 
-    try {
+            try {
 
-        const respuesta =
-            await fetch(API_URL);
+                const respuesta =
+                    await fetch(API_URL, {
 
-        if(!respuesta.ok){
-            throw new Error(
-                `Error ${respuesta.status}`
-            );
-        }
+                        headers: {
+                            "x-token": "iot_launion_2026"
+                        }
+                    });
 
-        const datos =
-            await respuesta.json();
+                if (!respuesta.ok) {
+                    throw new Error(
+                        `Error ${respuesta.status}`
+                    );
+                }
 
-        let html = "";
+                const datos =
+                    await respuesta.json();
 
-        if(!datos.length){
+                let html = "";
 
-            html = `
+                if (!datos.length) {
+
+                    html = `
             <tr>
                 <td colspan="5">
                     No hay registros disponibles
@@ -206,21 +210,21 @@ async function cargarHistorial(){
             </tr>
             `;
 
-        }else{
+                } else {
 
-            datos.forEach(item => {
+                    datos.forEach(item => {
 
-                const claseEstado =
-                    item.estado === "Encendido"
-                    ? "estado-on"
-                    : "estado-off";
+                        const claseEstado =
+                            item.estado === "Encendido"
+                                ? "estado-on"
+                                : "estado-off";
 
-                html += `
+                        html += `
                 <tr>
 
                     <td>
                         ${new Date(item.timestamp)
-                            .toLocaleString()}
+                                .toLocaleString()}
                     </td>
 
                     <td>
@@ -241,35 +245,36 @@ async function cargarHistorial(){
 
                 </tr>
                 `;
-            });
+                    });
 
-        }
+                }
 
-        document.getElementById(
-            "tablaHistorial"
-        ).innerHTML = html;
+                document.getElementById(
+                    "tablaHistorial"
+                ).innerHTML = html;
 
-    }
-    catch(error){
+            }
+            catch (error) {
 
-        console.error(error);
+                console.error(error);
 
-        document.getElementById(
-            "tablaHistorial"
-        ).innerHTML = `
+                document.getElementById(
+                    "tablaHistorial"
+                ).innerHTML = `
         <tr>
             <td colspan="5" class="error">
                 Error cargando historial
             </td>
         </tr>
         `;
-    }
+            }
 
-}
+        }
 
-cargarHistorial();
+        cargarHistorial();
 
-</script>
+    </script>
 
 </body>
+
 </html>

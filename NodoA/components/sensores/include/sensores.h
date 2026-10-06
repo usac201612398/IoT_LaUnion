@@ -5,9 +5,9 @@
 typedef struct
 {
     float temperatura;
-    float humedad_ambiente;
-    int humedad_suelo;
-    float por_humedad;
+    float humedad_ambiente; //DHT11
+    int humedad_suelo; //Este es el ADC
+    float por_humedad; //HW-101
 
 } sensores_data_t;
 

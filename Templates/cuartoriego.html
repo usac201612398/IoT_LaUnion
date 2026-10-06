@@ -553,8 +553,11 @@
 
         async function publicarComando(payload) {
             const response = await fetch(API_COMANDOS, {
+            
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "x-token": "iot_launion_2026",
+                    "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
@@ -747,7 +750,9 @@
             errorElemento.style.display = "none";
 
             try {
-                const respuesta = await fetch(`${API_BASE}/telemetria/CRiego`, { cache: "no-store" });
+                const respuesta = await fetch(`${API_BASE}/telemetria/CRiego`, { cache: "no-store" , headers: { 
+                    "x-token": "iot_la_union_2026",
+                    "Content-Type": "application/json" }});
                 if (!respuesta.ok) throw new Error(`La API respondió con estado ${respuesta.status}`);
 
                 const datos = await respuesta.json();

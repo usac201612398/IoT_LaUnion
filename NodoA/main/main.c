@@ -8,8 +8,13 @@
 #include "actuadores.h"
 
 static const char *TAG = "Main";
+
+#define TASA_ENVIO_DATOS 20000
+
 static QueueHandle_t cola_sensores;
 static QueueHandle_t cola_actuadores;
+
+// Aqui hay dos tareas unicamente la tercera está en comunicaciones...
 
 static void mqtt_task(void *pvParameters)
 {
@@ -39,7 +44,7 @@ static void sensor_task(void *pvParameters)
     sensores_data_t datos = {0};
 
     vTaskDelay(
-        pdMS_TO_TICKS(1500)
+        pdMS_TO_TICKS(3000)
     );
 
     while (1)
@@ -52,8 +57,8 @@ static void sensor_task(void *pvParameters)
             0
         );
 
-
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        // Se define tiempo de envio de datos
+        vTaskDelay(pdMS_TO_TICKS(TASA_ENVIO_DATOS));
     
     }
 }
@@ -63,10 +68,11 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Arrancando sistema");
 
+    // Se conecta al wifi, se validó reconección automaticamente al perderla.
     ESP_ERROR_CHECK(
         wifi_init()
     );
-    
+    // Se inician los sensores y se empiezan definen las funciones para adquisición de datos.
     ESP_ERROR_CHECK(
         sensores_init()
     );
@@ -78,13 +84,21 @@ void app_main(void)
 
     if (cola_sensores == NULL)
     {
-    ESP_LOGE(TAG, "Error creando cola");
+        ESP_LOGE(TAG, "Error creando cola de sensores");
     }
 
     cola_actuadores = xQueueCreate(
         5,
         sizeof(actuador_comando_t)
     );
+
+    if (cola_actuadores == NULL)
+    {
+        ESP_LOGE(TAG, "Error creando cola de actuadores");
+    }
+
+    // El GPIO que controlará la válvula en NodoA
+
     actuador_init();
 
     xTaskCreate(
@@ -92,9 +106,10 @@ void app_main(void)
         "sensor_task",
         4096,
         NULL,
-        5,
+        4,
         NULL
     );
+
     ESP_LOGI(TAG, "Sistema iniciado");
 
     xTaskCreate(
@@ -111,7 +126,7 @@ void app_main(void)
         "recibir_queue_task",
         4096,
         NULL,
-        5,
+        6,
         NULL
     );
 

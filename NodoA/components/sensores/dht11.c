@@ -8,7 +8,6 @@
 #include "esp_log.h"
 #include "esp_rom_sys.h"
 
-
 /*----------------------------------------------------------
  * Configuración
  *----------------------------------------------------------*/
@@ -22,9 +21,7 @@
 #define DHT11_MAX_INTENTOS          3
 #define DHT11_REINTENTO_DELAY_US    20000
 
-
 static const char *TAG = "DHT11";
-
 
 /*----------------------------------------------------------
  * Prototipos privados
@@ -41,12 +38,12 @@ static esp_err_t dht11_wait_for_state(
     uint32_t *tiempo_esperado_us
 );
 
+//Se envia la cola
 static esp_err_t dht11_iniciar_comunicacion(void);
 
 static esp_err_t dht11_leer_bit(uint8_t *bit);
 
 static esp_err_t dht11_leer_byte(uint8_t *byte);
-
 
 /*----------------------------------------------------------
  * Configuración del sentido del GPIO
@@ -60,7 +57,6 @@ static void dht11_set_input(void)
     );
 }
 
-
 static void dht11_set_output(void)
 {
     gpio_set_direction(
@@ -68,7 +64,6 @@ static void dht11_set_output(void)
         GPIO_MODE_OUTPUT_OD
     );
 }
-
 
 /*----------------------------------------------------------
  * Mantener DATA en nivel bajo
@@ -114,10 +109,8 @@ static esp_err_t dht11_hold_low(uint32_t tiempo_us)
     return ESP_OK;
 }
 
-
 /*----------------------------------------------------------
  * Esperar hasta que el GPIO alcance el estado indicado
- *
  * Devuelve además cuánto demoró en cambiar.
  *----------------------------------------------------------*/
 
@@ -147,7 +140,6 @@ static esp_err_t dht11_wait_for_state(
 
     return ESP_OK;
 }
-
 
 /*----------------------------------------------------------
  * Señal de inicio y respuesta del sensor
@@ -216,15 +208,11 @@ static esp_err_t dht11_iniciar_comunicacion(void)
     return ESP_OK;
 }
 
-
 /*----------------------------------------------------------
  * Lectura de un bit
- *
  * Cada bit contiene:
- *
  * LOW inicial
  * HIGH corto o largo
- *
  * Se compara la duración HIGH contra la duración LOW.
  *----------------------------------------------------------*/
 
@@ -285,7 +273,6 @@ static esp_err_t dht11_leer_bit(uint8_t *bit)
     return ESP_OK;
 }
 
-
 /*----------------------------------------------------------
  * Lectura de ocho bits
  *----------------------------------------------------------*/
@@ -318,7 +305,6 @@ static esp_err_t dht11_leer_byte(uint8_t *byte)
 
     return ESP_OK;
 }
-
 
 /*----------------------------------------------------------
  * Inicialización pública
@@ -368,11 +354,11 @@ esp_err_t dht11_init(void)
     );
 
     return ESP_OK;
+
 }
 
-
 /*----------------------------------------------------------
- * Lectura pública
+ * Lectura de sensor
  *----------------------------------------------------------*/
 
 esp_err_t dht11_leer(

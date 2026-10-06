@@ -27,6 +27,7 @@ extern const uint8_t device_key_end[] asm("_binary_device_key_pem_end");
 
 static QueueHandle_t s_cola_actuadores = NULL;
 
+
 static void mqtt_event_handler(
     void *handler_args,
     esp_event_base_t base,
@@ -107,7 +108,7 @@ static void mqtt_event_handler(
         }
 
         break;
-    case MQTT_EVENT_DATA:
+    case MQTT_EVENT_DATA: //Aquí se reciben los datos a donde se subscribe 
 
         printf("TOPICO: %.*s\n",
                event->topic_len,
@@ -153,7 +154,7 @@ static void mqtt_event_handler(
                     &comando,
                     0);
 
-                ESP_LOGI(TAG, "Comando enviando a cola tipo: %u",tipo->valueint);
+                ESP_LOGI(TAG, "Comando enviando a cola actuadores, tipo: %u",tipo->valueint);
                 cJSON_Delete(root);
             }
             else if (tipo && tipo->valueint == ACCION_INDEPENDIENTE)
@@ -169,7 +170,7 @@ static void mqtt_event_handler(
                     &comando,
                     0);
 
-                ESP_LOGI(TAG, "Comando enviando a cola tipo: %u",tipo->valueint);
+                ESP_LOGI(TAG, "Comando enviando a cola actuadores, tipo: %u",tipo->valueint);
                 cJSON_Delete(root);
             }
             else
@@ -345,7 +346,7 @@ esp_err_t mqtt_publicar_sensores(sensores_data_t *datos)
 
     esp_mqtt_client_publish(
         client,
-        "iot_launion/telemetria/nodoA",
+        "iot_launion/telemetria/NodoA",
         json,
         0,
         1,
@@ -455,4 +456,3 @@ const char *obtener_tipo_comando (tipo_comando_t tipo)
         return "NO_DEFINIDO";
     }
 }
-

@@ -3,31 +3,27 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
 
-
 /*
- *
- * GPIO34 corresponde a ADC1_CHANNEL_6.
+ * GPIO34 es lo mismo que ADC1_CHANNEL_6.
  */
+
 #define HUMEDAD_SUELO_ADC_UNIDAD     ADC_UNIT_1
 #define HUMEDAD_SUELO_ADC_CANAL      ADC_CHANNEL_6
 
 #define HUMEDAD_SUELO_ATENUACION     ADC_ATTEN_DB_12
 #define HUMEDAD_SUELO_RESOLUCION     ADC_BITWIDTH_12
+
 #define ADC_SECO     3387
 #define ADC_HUMEDO   1296
 
-
-
-static const char *TAG = "HUMEDAD_SUELO";
+static const char *TAG = "Humedad_Suelo";
 
 static adc_oneshot_unit_handle_t adc_handle = NULL;
 static bool humedad_suelo_inicializado = false;
 
-
 /*----------------------------------------------------------
  * Inicialización del ADC
  *----------------------------------------------------------*/
-
 
 esp_err_t humedad_suelo_init(void)
 {
@@ -40,7 +36,6 @@ esp_err_t humedad_suelo_init(void)
 
         return ESP_OK;
     }
-
     /*
      * Configuración general de ADC1.
      */
@@ -108,9 +103,6 @@ esp_err_t humedad_suelo_init(void)
     return ESP_OK;
 }
 
-#define ADC_SECO     3387
-#define ADC_HUMEDO   1296
-
 float humedad_suelo_porcentaje(
     int adc
 )
@@ -134,6 +126,7 @@ float humedad_suelo_porcentaje(
 
     return humedad;
 }
+
 /*----------------------------------------------------------
  * Lectura ADC bruta
  *----------------------------------------------------------*/
