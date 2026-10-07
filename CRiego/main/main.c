@@ -8,6 +8,8 @@
 #include "actuadores.h"
 
 static const char *TAG = "Main";
+#define TASA_ENVIO_DATOS 20000
+
 static QueueHandle_t cola_sensores;
 static QueueHandle_t cola_actuadores;
 
@@ -38,16 +40,12 @@ static void sensor_task(void *pvParameters)
 {
     sensores_data_t datos = {0};
 
-    vTaskDelay(
-        pdMS_TO_TICKS(1500)
-    );
-
     while (1)
     {
        
         ESP_LOGI(
             TAG,
-            "Enviado a cola: (%1.f,%1.f,%1.f,%1.f)",
+            "Enviado a cola: (%1.f cm,%1.f%%,%1.f L/min,%1.f L)",
             datos.nivel,
             datos.por_llenado,
             datos.flujo,
@@ -61,8 +59,7 @@ static void sensor_task(void *pvParameters)
             0
         );
 
-
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(TASA_ENVIO_DATOS));
     
     }
 }
@@ -87,13 +84,18 @@ void app_main(void)
 
     if (cola_sensores == NULL)
     {
-    ESP_LOGE(TAG, "Error creando cola");
+    ESP_LOGE(TAG, "Error creando cola sensores");
     }
 
     cola_actuadores = xQueueCreate(
         5,
         sizeof(actuador_comando_t)
     );
+
+    if (cola_actuadores == NULL)
+    {
+    ESP_LOGE(TAG, "Error creando cola actuadores");
+    }
 
     actuador_init();
 

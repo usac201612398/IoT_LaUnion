@@ -30,7 +30,8 @@ static void wifi_event_handler(
     {
         ESP_LOGI(TAG, "WiFi conectado");
     }
-
+    
+    //Si se perdiera la conexión se recuperaría automáticamente.
     if (event_base == WIFI_EVENT &&
         event_id == WIFI_EVENT_STA_DISCONNECTED)
     {   

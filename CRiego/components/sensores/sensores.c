@@ -7,20 +7,21 @@ static const char *TAG = "Sensores";
 
 esp_err_t sensores_init(void)
 {
-    esp_err_t resultado;
+    esp_err_t resultado_1;
+    esp_err_t resultado_2;
 
-    resultado = ultrasonico_init();
-    if (resultado != ESP_OK)
+    resultado_1 = ultrasonico_init();
+    if (resultado_1 != ESP_OK)
     {
-        ESP_LOGE(TAG,"Error inicializando ultrasónico: %s",esp_err_to_name(resultado));
-        return resultado;
+        ESP_LOGE(TAG,"Error inicializando ultrasónico: %s",esp_err_to_name(resultado_1));
+        return resultado_1;
     }  
 
-    resultado = flujo_init();
-    if (resultado != ESP_OK)
+    resultado_2 = flujo_init();
+    if (resultado_2 != ESP_OK)
     {
-        ESP_LOGE(TAG,"Error inicializando flujómetro: %s",esp_err_to_name(resultado));
-        return resultado;
+        ESP_LOGE(TAG,"Error inicializando flujómetro: %s",esp_err_to_name(resultado_2));
+        return resultado_2;
     }  
 
     ESP_LOGI(
@@ -36,38 +37,39 @@ esp_err_t sensores_init(void)
 esp_err_t sensores_leer(
     sensores_data_t *datos)
 {
-    esp_err_t resultado;
+    esp_err_t resultado_1;
+    esp_err_t resultado_2;
 
     if (datos == NULL)
     {
         return ESP_ERR_INVALID_ARG;
     }
 
-    resultado = ultrasonico_leer(
+    resultado_1 = ultrasonico_leer(
        &datos->nivel,
         &datos->por_llenado
     );
 
-    if (resultado != ESP_OK)
+    if (resultado_1 != ESP_OK)
     {
         ESP_LOGE(TAG,"Lectura ultrasónico fallida");
         datos->nivel = 0;
         datos->por_llenado = 0;
     }
 
-    resultado = flujo_leer(
+    resultado_2 = flujo_leer(
        &datos->flujo,
        &datos->litros_totales
     );
 
-    if (resultado != ESP_OK)
+    if (resultado_2 != ESP_OK)
     {
         ESP_LOGE(TAG,"Lectura flujómetro fallida");
         datos->flujo = 0;
         datos->litros_totales = 0;
     }
     
-    ESP_LOGI(TAG,"Nivel: %1.f | por_llenado: %1.f | flujo: %1.f | litros_totales: %1.f ",
+    ESP_LOGI(TAG,"Nivel: %1.f cm | por_llenado: %1.f%% | flujo: %1.f L/min | litros_totales: %1.f L",
                 datos->nivel,datos->por_llenado,datos->flujo,datos->litros_totales);
 
     return ESP_OK;

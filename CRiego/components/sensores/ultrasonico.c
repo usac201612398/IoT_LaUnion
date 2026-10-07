@@ -4,13 +4,13 @@
 #include "esp_log.h"
 #include "esp_rom_sys.h"
 #include "esp_timer.h"
-
-#define TAG "ULTRASONICO"
+//HC-SR04
+#define TAG "HC-SR04"
 
 #define GPIO_TRIG 18
 #define GPIO_ECHO 19
 
-#define ALTURA_TANQUE_CM 200.0f
+#define ALTURA_TANQUE_CM 100.0f
 
 esp_err_t ultrasonico_init(void)
 {
@@ -101,9 +101,10 @@ esp_err_t ultrasonico_leer(
 
     *por_llenado =
         (*nivel / ALTURA_TANQUE_CM) * 100.0f;
+
     ESP_LOGI(
         TAG,
-        "Nivel: %.2f  | por_llenado: %.2f L",
+        "Nivel: %.2f cm | Llenado: %.2f %%",
         *nivel,
         *por_llenado
     );

@@ -43,10 +43,6 @@ static void sensor_task(void *pvParameters)
 {
     sensores_data_t datos = {0};
 
-    vTaskDelay(
-        pdMS_TO_TICKS(3000)
-    );
-
     while (1)
     {
 

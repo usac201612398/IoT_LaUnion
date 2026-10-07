@@ -12,6 +12,7 @@ static const char *TAG = "MQTT";
 static esp_mqtt_client_handle_t client = NULL;
 static bool mqtt_conectado = false;
 static bool riego_automatico_activo = false;
+#define TIEMPO_RIEGO_AUTOMATICO 30
 
 extern const uint8_t root_ca_start[] asm("_binary_root_ca_pem_start");
 
@@ -61,7 +62,7 @@ static void mqtt_event_handler(
 
         ESP_LOGI(TAG, "Suscrito a iot_launion/riego/comandos/CRiego");
 
-        ESP_LOGI(TAG, "Suscrito a iot_launion/telemetría/+");
+        ESP_LOGI(TAG, "Suscrito a iot_launion/telemetría/NodoA");
 
         break;
 
@@ -191,7 +192,7 @@ static void mqtt_event_handler(
         }
         else
         {
-            // Monitorea los nodos subscritos para automatizar riego
+            // Este el el modulo automático
 
             cJSON *root = cJSON_Parse(event->data);
 
@@ -221,16 +222,16 @@ static void mqtt_event_handler(
                         comando.id = ACTUADOR_BOMBA_CENTRAL;
                         comando.estado = true;
                         comando.tipo = COMANDO_AUTOMATICO;
-                        comando.duracion = 30;
+                        comando.duracion = TIEMPO_RIEGO_AUTOMATICO;
                         xQueueSend(
                             s_cola_actuadores,
                             &comando,
                             0);
-                        // COMUNICACION DE CRiego a NodoA
+                        // Comunicación de CRiego a NodoA
                         publicar_comando_nodo(
                             nombre_nodo,
                             true,
-                            30);
+                            TIEMPO_RIEGO_AUTOMATICO);
 
                         ESP_LOGI(TAG, "Riego automatico activado");
                     }

@@ -4,7 +4,7 @@
 #include "esp_timer.h"
 #define GPIO_FLUJO 27
 
-static const char *TAG = "FLUJO";
+static const char *TAG = "YF-S201";
 
 static volatile uint32_t contador_pulsos = 0;
 static int64_t ultimo_tiempo = 0;
@@ -52,7 +52,10 @@ esp_err_t flujo_leer(
 
     float segundos =
         (ahora - ultimo_tiempo) / 1000000.0f;
-
+    if (segundos <= 0.0f)
+    {
+        return ESP_ERR_INVALID_STATE;
+    }
     ultimo_tiempo = ahora;
 
     uint32_t pulsos = contador_pulsos;
@@ -73,5 +76,6 @@ esp_err_t flujo_leer(
         *flujo,
         *litros_totales
     );
+    
     return ESP_OK;
 }
